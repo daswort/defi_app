@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import Web3 from 'web3'
-import Navbar from './Navbar'
 import DaiToken from '../abis/DaiToken.json'
 import PndrgnToken from '../abis/PndrgnToken.json'
 import TokenFarm from '../abis/TokenFarm.json'
 
+import Navbar from './Navbar'
+import Main from './Main'
 import './App.css'
 
 class App extends Component {
@@ -42,7 +43,6 @@ class App extends Component {
       this.setState({ pndrgnToken })
       let pndrgnTokenBalance = await pndrgnToken.methods.balanceOf(this.state.account).call()
       this.setState({ pndrgnTokenBalance: pndrgnTokenBalance.toString() })
-      console.log({balance: pndrgnTokenBalance})
     } else {
       window.alert('PndrgnToken contract not deployed to detected network.')
     }
@@ -55,7 +55,6 @@ class App extends Component {
       this.setState({ TokenFarm })
       let stakingBalance = await tokenFarm.methods.stakingBalance(this.state.account).call()
       this.setState({ stakingBalance: stakingBalance.toString() })
-      console.log({balance: stakingBalance})
     } else {
       window.alert('TokenFarm contract not deployed to detected network.')
     }
@@ -105,7 +104,7 @@ class App extends Component {
                 >
                 </a>
 
-                <h1>Hello, World!</h1>
+                <Main />
 
               </div>
             </main>
