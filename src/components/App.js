@@ -90,6 +90,12 @@ class App extends Component {
   }
 
   render() {
+    let content
+    if (this.state.loading) {
+      content = <p id="loader" className="text-center">Loading...</p>
+    } else {
+      content = <Main />
+    }
     return (
       <div>
         <Navbar account={this.state.account} />
@@ -103,8 +109,8 @@ class App extends Component {
                   rel="noopener noreferrer"
                 >
                 </a>
-
-                <Main />
+                 
+                {content}
 
               </div>
             </main>
