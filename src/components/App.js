@@ -1,13 +1,92 @@
 import React, { Component } from 'react'
+import Web3 from 'web3'
 import Navbar from './Navbar'
+import DaiToken from '../abis/DaiToken.json'
+import PndrgnToken from '../abis/PndrgnToken.json'
+import TokenFarm from '../abis/TokenFarm.json'
+
 import './App.css'
 
 class App extends Component {
 
+  async componentWillMount() {
+    await this.loadWeb3()
+    await this.loadBlockchainData()
+  }
+
+  async loadBlockchainData() {
+    const web3 = window.web3
+    const accounts = await web3.eth.getAccounts()
+
+    this.setState({account: accounts[0]})
+
+    const networkId = await web3.eth.net.getId()
+
+    // Load DAI token
+    const daiTokenData = DaiToken.networks[networkId]
+    
+    if (daiTokenData) {
+      const daiToken = new web3.eth.Contract(DaiToken.abi, daiTokenData.address)
+      this.setState({ daiToken })
+      let daiTokenBalance = await daiToken.methods.balanceOf(this.state.account).call()
+      this.setState({ daiTokenBalance: daiTokenBalance.toString() })
+    } else {
+      window.alert('DaiToken contract not deployed to detected network.')
+    }
+
+    // Load Pndrgn token
+    const pndrgnTokenData = PndrgnToken.networks[networkId]
+    
+    if (pndrgnTokenData) {
+      const pndrgnToken = new web3.eth.Contract(PndrgnToken.abi, pndrgnTokenData.address)
+      this.setState({ pndrgnToken })
+      let pndrgnTokenBalance = await pndrgnToken.methods.balanceOf(this.state.account).call()
+      this.setState({ pndrgnTokenBalance: pndrgnTokenBalance.toString() })
+      console.log({balance: pndrgnTokenBalance})
+    } else {
+      window.alert('PndrgnToken contract not deployed to detected network.')
+    }
+
+    // Load TokenFarm
+    const tokenFarmData = TokenFarm.networks[networkId]
+    
+    if (tokenFarmData) {
+      const tokenFarm = new web3.eth.Contract(TokenFarm.abi, tokenFarmData.address)
+      this.setState({ TokenFarm })
+      let stakingBalance = await tokenFarm.methods.stakingBalance(this.state.account).call()
+      this.setState({ stakingBalance: stakingBalance.toString() })
+      console.log({balance: stakingBalance})
+    } else {
+      window.alert('TokenFarm contract not deployed to detected network.')
+    }
+  }
+
+  async loadWeb3() {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum)
+      await window.ethereum.enable()
+    
+    } else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider)
+    
+    } else {
+      window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
+    }
+
+    this.setState({ loading: false })
+  }
+
   constructor(props) {
     super(props)
     this.state = {
-      account: '0x0'
+      account: '0x0',
+      daiToken: {},
+      pndrgnToken: {},
+      tokenFarm: {},
+      daiTokenBalance: '0',
+      pndrgnTokenBalance: '0',
+      stakingBalance: '0',
+      loading: true
     }
   }
 
