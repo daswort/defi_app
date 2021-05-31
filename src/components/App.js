@@ -52,12 +52,14 @@ class App extends Component {
     
     if (tokenFarmData) {
       const tokenFarm = new web3.eth.Contract(TokenFarm.abi, tokenFarmData.address)
-      this.setState({ TokenFarm })
+      this.setState({ tokenFarm })
       let stakingBalance = await tokenFarm.methods.stakingBalance(this.state.account).call()
       this.setState({ stakingBalance: stakingBalance.toString() })
     } else {
       window.alert('TokenFarm contract not deployed to detected network.')
     }
+
+    this.setState({ loading: false })
   }
 
   async loadWeb3() {
@@ -71,8 +73,22 @@ class App extends Component {
     } else {
       window.alert('Non-Ethereum browser detected. You should consider trying MetaMask!')
     }
+  }
 
-    this.setState({ loading: false })
+  stakeTokens = (amount) => {
+    this.setState({ loading: true })
+    this.state.daiToken.methods.approve(this.state.tokenFarm._address, amount).send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.state.tokenFarm.methods.stakeTokens(amount).send({ from: this.state.account }).on('transactionHash', (hash) => {
+        this.setState({ loading: false })
+      })
+    })
+  }
+
+  unstakeTokens = (amount) => {
+    this.setState({ loading: true })
+    this.state.tokenFarm.methods.unstakeTokens().send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.setState({ loading: false })
+    })
   }
 
   constructor(props) {
@@ -94,7 +110,13 @@ class App extends Component {
     if (this.state.loading) {
       content = <p id="loader" className="text-center">Loading...</p>
     } else {
-      content = <Main />
+      content = <Main 
+        daiTokenBalance = {this.state.daiTokenBalance}
+        pndrgnTokenBalance = {this.state.pndrgnTokenBalance}
+        stakingBalance = {this.state.stakingBalance}
+        stakeTokens = {this.stakeTokens}
+        unstakeTokens = {this.unstakeTokens}
+      />
     }
     return (
       <div>
